@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FRC Ball Counter</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23f97316'/%3E%3C/svg%3E" />
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap");
+
+    /* ---------- theme ---------- */
+    :root {
+      --night: #0b0f12;
+      --slate: #11151a;
+      --accent: #f97316;
+      --accent-muted: #f59e0b;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --glow: 0 10px 30px rgba(249, 115, 22, 0.25);
+
+      color: var(--slate-200);
+      background-color: var(--night);
+      font-family: "Manrope", Inter, system-ui, -apple-system, sans-serif;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    /* Several elements below set an explicit display, which would otherwise
+       beat the user-agent [hidden] rule. */
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(120% 120% at 50% 20%, rgba(249, 115, 22, 0.08), transparent 40%),
+        radial-gradient(80% 80% at 20% 20%, rgba(255, 255, 255, 0.06), transparent 40%),
+        var(--night);
+      color: var(--slate-100);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 9999px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ---------- header ---------- */
+    header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(17, 21, 26, 0.8);
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      margin: 0 auto;
+      max-width: 72rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding: 0.6rem 1rem;
+    }
+
+    .eyebrow {
+      margin: 0;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+
+    .header-inner h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .byline {
+      font-size: 0.75rem;
+      color: var(--slate-400);
+    }
+
+    /* ---------- layout ---------- */
+    main {
+      margin: 0 auto;
+      width: 100%;
+      max-width: 84rem;
+      padding: 1.5rem 1.5rem 4rem;
+    }
+
+    .board {
+      display: grid;
+      gap: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1rem;
+      background: rgba(17, 21, 26, 0.7);
+      padding: 1.5rem;
+      box-shadow: var(--glow);
+    }
+
+    @media (min-width: 1024px) {
+      .board {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    /* ---------- url row ---------- */
+    .field-label {
+      font-size: 0.875rem;
+      color: var(--slate-300);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+
+    .url-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 640px) {
+      .url-row {
+        flex-direction: row;
+      }
+    }
+
+    .url-input {
+      width: 100%;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      color: #fff;
+    }
+
+    .url-input::placeholder {
+      color: var(--slate-500);
+    }
+
+    .url-input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+      border-radius: 0.75rem;
+      background: var(--accent);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #000;
+      transition: background 150ms;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-muted);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+    }
+
+    .status {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--slate-400);
+    }
+
+    /* ---------- player ---------- */
+    .video-frame {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .video-frame iframe,
+    .video-frame>div {
+      height: 100%;
+      width: 100%;
+      border: 0;
+    }
+
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      color: var(--slate-400);
+      font-size: 0.875rem;
+    }
+
+    /* ---------- controls ---------- */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-ghost {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.5rem 0.75rem;
+      color: var(--slate-200);
+      transition: border-color 150ms, color 150ms;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-ghost.strong {
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .btn-log {
+      border: none;
+      border-radius: 0.5rem;
+      background: var(--accent);
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      color: #000;
+      box-shadow: var(--glow);
+      transition: background 150ms;
+    }
+
+    .btn-log:hover {
+      background: var(--accent-muted);
+    }
+
+    .speed-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--slate-300);
+    }
+
+    .speed-box select {
+      border: none;
+      border-radius: 0.375rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.25rem 0.5rem;
+      color: #fff;
+    }
+
+    .speed-box select:focus {
+      outline: none;
+    }
+
+    /* ---------- timeline ---------- */
+    .timeline-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--slate-400);
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline {
+      position: relative;
+      height: 0.75rem;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .timeline-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      border-radius: 9999px;
+      background: var(--accent);
+    }
+
+    .timeline-marker {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    /* ---------- chart ---------- */
+    .card-dark {
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--slate-400);
+    }
+
+    .chart-empty {
+      margin: 0.5rem 0 0;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+
+    .chart svg {
+      width: 100%;
+      height: 10rem;
+      border-radius: 0.5rem;
+      background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+      display: block;
+    }
+
+    .chart-axis {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--slate-500);
+    }
+
+    /* ---------- side panel ---------- */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1.25rem;
+      min-width: 0;
+    }
+
+    .stats-card {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      padding: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      text-align: center;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-400);
+    }
+
+    .stat-big {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .stat-mid {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    .tip {
+      position: relative;
+      cursor: help;
+    }
+
+    .tip .tip-body {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 0.5rem;
+      display: none;
+      white-space: nowrap;
+      border-radius: 0.375rem;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--slate-300);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .tip:hover .tip-body {
+      display: block;
+    }
+
+    /* ---------- shot list ---------- */
+    .shot-list-wrap {
+      flex: 1;
+      overflow: hidden;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .shot-empty {
+      display: flex;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+
+    .shot-empty .icon {
+      font-size: 2.25rem;
+      opacity: 0.3;
+    }
+
+    .shot-empty .title {
+      margin: 0;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--slate-300);
+    }
+
+    .shot-empty .sub {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+
+    kbd {
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent);
+      font-family: inherit;
+    }
+
+    .shot-list {
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .shot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.875rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 150ms;
+    }
+
+    .shot-row:first-child {
+      border-top: none;
+    }
+
+    .shot-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .shot-row.active {
+      background: rgba(249, 115, 22, 0.1);
+      color: #fff;
+    }
+
+    .shot-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .shot-index {
+      border-radius: 0.375rem;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      color: var(--slate-300);
+    }
+
+    .shot-seek {
+      border: none;
+      border-radius: 0.375rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.25rem 0.75rem;
+      font-weight: 600;
+      color: #fff;
+      transition: all 150ms;
+    }
+
+    .shot-seek:hover {
+      background: var(--accent);
+      color: #000;
+      transform: scale(1.05);
+    }
+
+    .shot-remove {
+      border: none;
+      background: none;
+      border-radius: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      color: var(--slate-300);
+      transition: background 150ms, color 150ms;
+    }
+
+    .shot-remove:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fecaca;
+    }
+
+    /* ---------- hotkeys ---------- */
+    .hotkeys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+
+    .hotkeys kbd {
+      color: var(--slate-300);
+    }
+
+    /* ---------- file:// notice ---------- */
+    .notice {
+      margin: 0 auto 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(249, 115, 22, 0.35);
+      background: rgba(249, 115, 22, 0.08);
+      padding: 1rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--slate-200);
+      line-height: 1.5;
+    }
+
+    .notice strong {
+      color: var(--accent);
+    }
+
+    .notice a {
+      color: var(--accent);
+    }
+
+    .notice code {
+      display: inline-block;
+      border-radius: 0.375rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.125rem 0.5rem;
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.8125rem;
+      color: var(--slate-100);
+    }
+
+    footer {
+      margin: 2rem auto 0;
+      max-width: 84rem;
+      padding: 0 1.5rem;
+      font-size: 0.75rem;
+      color: var(--slate-500);
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--slate-400);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="eyebrow">FRC 2026</p>
+      <h1>Ball Counter</h1>
+      <span class="byline">made by 4481 Team Rembrandts</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="fileNotice" class="notice" hidden>
+      <strong>This page was opened straight from your file system.</strong>
+      YouTube refuses to play embedded videos from a <code>file://</code> page, so the player will
+      report an error. Use the hosted copy at
+      <a href="https://bjorn4481.github.io/frc-ball-counter/">bjorn4481.github.io/frc-ball-counter</a>
+      instead — or serve this file over HTTP yourself: open a terminal in this folder, run
+      <code>python -m http.server 8000</code>, then visit <code>http://localhost:8000/</code>.
+      Any web address works; only <code>file://</code> is blocked.
+    </div>
+
+    <section class="board">
+      <!-- ---------- left column ---------- -->
+      <div class="stack">
+        <div>
+          <span class="field-label">YouTube URL</span>
+          <span class="field-hint">(paste a link or an 11-character video ID)</span>
+        </div>
+
+        <div class="url-row">
+          <input id="videoInput" class="url-input" placeholder="https://www.youtube.com/watch?v=..." />
+          <button id="loadBtn" class="btn-primary" disabled>Load video</button>
+        </div>
+
+        <p id="status" class="status">Loading YouTube player…</p>
+
+        <div class="video-frame">
+          <div id="playerHost"></div>
+          <div id="videoPlaceholder" class="video-placeholder">Load a YouTube link to start.</div>
+        </div>
+
+        <div class="controls">
+          <button id="playBtn" class="btn-ghost strong">Play</button>
+          <button id="backBtn" class="btn-ghost">-1s</button>
+          <button id="fwdBtn" class="btn-ghost">+1s</button>
+          <button id="logBtn" class="btn-log">Log ball (B)</button>
+          <button id="undoBtn" class="btn-ghost">Undo (U)</button>
+          <div class="speed-box">
+            <span>Speed</span>
+            <select id="speedSelect">
+              <option value="0.25">0.25x</option>
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="timeline-meta">
+            <span id="timeLabel">00:00.00 / 00:00.00</span>
+            <span id="shotCountLabel">0 shots logged</span>
+          </div>
+          <div class="timeline">
+            <div id="timelineFill" class="timeline-fill"></div>
+            <div id="timelineMarkers"></div>
+          </div>
+        </div>
+
+        <div class="card-dark">
+          <div class="card-title">Balls over time (t = 0 at first ball)</div>
+          <div id="chart" class="chart">
+            <p class="chart-empty">Log at least two shots to see the curve.</p>
+          </div>
+        </div>
+
+        <div class="hotkeys">
+          <span><kbd>B</kbd> log ball</span>
+          <span><kbd>Space</kbd> play / pause</span>
+          <span><kbd>U</kbd> undo</span>
+          <span><kbd>[</kbd> <kbd>]</kbd> seek 1s</span>
+          <span><kbd>,</kbd> <kbd>.</kbd> frame step</span>
+        </div>
+      </div>
+
+      <!-- ---------- right column ---------- -->
+      <div class="panel">
+        <div class="stats-card">
+          <div class="stats-grid">
+            <div>Total balls</div>
+            <div class="tip">
+              Avg BPS
+              <span class="tip-body">Overall throughput between the first and last scored ball</span>
+              <span>ℹ️</span>
+            </div>
+            <div id="statTotal" class="stat-big">0</div>
+            <div id="statAvg" class="stat-big">0.00</div>
+            <div class="tip">
+              Max BPS
+              <span class="tip-body">Best sustained 1-second burst</span>
+              <span>ℹ️</span>
+            </div>
+            <div>Duration</div>
+            <div id="statMax" class="stat-mid">0.00</div>
+            <div id="statDuration" class="stat-mid">00:00.00</div>
+          </div>
+        </div>
+
+        <div class="shot-list-wrap">
+          <div id="shotEmpty" class="shot-empty">
+            <div class="icon">🎯</div>
+            <p class="title">No shots logged yet</p>
+            <p class="sub">Press <kbd>B</kbd> while the video plays</p>
+          </div>
+          <div id="shotList" class="shot-list scrollbar-thin" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Offline edition — everything runs in this single file, nothing is uploaded or stored. ·
+    <a href="https://github.com/Bjorn4481/frc-ball-counter">Source on GitHub</a>
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // ---------- state ----------
+      var player = null;
+      var apiReady = false;
+      var videoId = "";
+      var shots = [];
+      var playerState = "idle";
+      var currentTime = 0;
+      var duration = 0;
+      var lastRenderedShotSignature = "";
+
+      var el = function (id) { return document.getElementById(id); };
+
+      var videoInput = el("videoInput");
+      var loadBtn = el("loadBtn");
+      var statusEl = el("status");
+      var playerHost = el("playerHost");
+      var videoPlaceholder = el("videoPlaceholder");
+      var playBtn = el("playBtn");
+      var speedSelect = el("speedSelect");
+      var timeLabel = el("timeLabel");
+      var shotCountLabel = el("shotCountLabel");
+      var timelineFill = el("timelineFill");
+      var timelineMarkers = el("timelineMarkers");
+      var chart = el("chart");
+      var shotList = el("shotList");
+      var shotEmpty = el("shotEmpty");
+
+      // ---------- helpers ----------
+      function formatTimestamp(seconds) {
+        var totalMs = Math.max(0, seconds || 0) * 1000;
+        var minutes = Math.floor(totalMs / 60000);
+        var secs = Math.floor((totalMs % 60000) / 1000);
+        var centis = Math.floor((totalMs % 1000) / 10);
+        return (
+          String(minutes).padStart(2, "0") + ":" +
+          String(secs).padStart(2, "0") + "." +
+          String(centis).padStart(2, "0")
+        );
+      }
+
+      function parseYouTubeId(input) {
+        var value = (input || "").trim();
+        if (!value) return "";
+        if (/^[a-zA-Z0-9_-]{11}$/.test(value)) return value;
+
+        try {
+          var url = value.indexOf("http") === 0
+            ? new URL(value)
+            : new URL("https://" + value);
+          if (url.hostname.indexOf("youtu.be") !== -1) {
+            return url.pathname.replace("/", "").slice(0, 11);
+          }
+          var paramId = url.searchParams.get("v");
+          if (paramId) return paramId.slice(0, 11);
+          var embedMatch = url.pathname.match(/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/);
+          if (embedMatch) return embedMatch[1];
+        } catch (err) {
+          return "";
+        }
+
+        return "";
+      }
+
+      function makeId() {
+        if (typeof crypto !== "undefined" && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+        return "shot-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+      }
+
+      function getPlayer() {
+        if (!player) return null;
+        if (typeof player.getCurrentTime !== "function") return null;
+        return player;
+      }
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      // ---------- stats ----------
+      function computeStats() {
+        var maxBps = 0;
+        for (var i = 0; i < shots.length; i++) {
+          var windowStart = shots[i].ts;
+          var windowEnd = windowStart + 1;
+          var ballsInWindow = 0;
+          for (var j = 0; j < shots.length; j++) {
+            if (shots[j].ts >= windowStart && shots[j].ts < windowEnd) ballsInWindow++;
+          }
+          if (ballsInWindow > maxBps) maxBps = ballsInWindow;
+        }
+
+        var avgBps = 0;
+        if (shots.length > 1) {
+          var deltaTime = shots[shots.length - 1].ts - shots[0].ts;
+          avgBps = deltaTime > 0 ? shots.length / deltaTime : 0;
+        }
+
+        return { maxBps: maxBps, avgBps: avgBps };
+      }
+
+      function cumulativeSeries() {
+        if (shots.length === 0) return [];
+        var t0 = shots[0].ts;
+        return shots.map(function (shot, idx) {
+          return { x: Math.max(0, shot.ts - t0), y: idx + 1 };
+        });
+      }
+
+      // ---------- rendering ----------
+      function renderStats() {
+        var stats = computeStats();
+        el("statTotal").textContent = String(shots.length);
+        el("statAvg").textContent = stats.avgBps.toFixed(2);
+        el("statMax").textContent = stats.maxBps.toFixed(2);
+        el("statDuration").textContent = formatTimestamp(duration || 0);
+      }
+
+      function renderTimeline() {
+        timeLabel.textContent =
+          formatTimestamp(currentTime) + " / " + formatTimestamp(duration || 0);
+        shotCountLabel.textContent =
+          shots.length + (shots.length === 1 ? " shot logged" : " shots logged");
+        timelineFill.style.width = duration
+          ? (currentTime / duration) * 100 + "%"
+          : "0%";
+      }
+
+      function renderMarkers() {
+        if (!duration) {
+          timelineMarkers.innerHTML = "";
+          return;
+        }
+        var html = "";
+        for (var i = 0; i < shots.length; i++) {
+          var left = Math.min(100, (shots[i].ts / duration) * 100);
+          html +=
+            '<span class="timeline-marker" style="left:' + left + '%" title="Shot at ' +
+            formatTimestamp(shots[i].ts) + '"></span>';
+        }
+        timelineMarkers.innerHTML = html;
+      }
+
+      function renderShotList() {
+        if (shots.length === 0) {
+          shotEmpty.hidden = false;
+          shotList.hidden = true;
+          shotList.innerHTML = "";
+          return;
+        }
+        shotEmpty.hidden = true;
+        shotList.hidden = false;
+
+        var html = "";
+        for (var i = 0; i < shots.length; i++) {
+          var shot = shots[i];
+          var isActive = Math.abs(currentTime - shot.ts) < 0.3;
+          html +=
+            '<div class="shot-row' + (isActive ? " active" : "") + '">' +
+            '<div class="shot-left">' +
+            '<span class="shot-index">#' + (i + 1) + "</span>" +
+            '<button class="shot-seek" data-seek="' + shot.ts + '">' +
+            formatTimestamp(shot.ts) + "</button>" +
+            "</div>" +
+            '<button class="shot-remove" data-remove="' + shot.id + '">Remove</button>' +
+            "</div>";
+        }
+        shotList.innerHTML = html;
+      }
+
+      function renderChart() {
+        var series = cumulativeSeries();
+        if (series.length < 2) {
+          chart.innerHTML = '<p class="chart-empty">Log at least two shots to see the curve.</p>';
+          return;
+        }
+
+        var pad = { left: 8, right: 2, top: 4, bottom: 8 };
+        var plotW = 100 - pad.left - pad.right;
+        var plotH = 60 - pad.top - pad.bottom;
+        var maxX = Math.max.apply(null, [1].concat(series.map(function (p) { return p.x; })));
+        var maxY = Math.max.apply(null, [1].concat(series.map(function (p) { return p.y; })));
+
+        var points = series.map(function (p) {
+          return {
+            x: pad.left + (p.x / maxX) * plotW,
+            y: pad.top + plotH - (p.y / maxY) * plotH
+          };
+        });
+
+        var line = points.map(function (p) { return p.x + "," + p.y; }).join(" ");
+        var area = [pad.left + "," + (pad.top + plotH)]
+          .concat(points.map(function (p) { return p.x + "," + p.y; }))
+          .concat([(pad.left + plotW) + "," + (pad.top + plotH)])
+          .join(" ");
+
+        var grid = "";
+        for (var i = 0; i < 5; i++) {
+          var gy = pad.top + (plotH / 4) * i;
+          grid +=
+            '<line x1="' + pad.left + '" y1="' + gy + '" x2="' + (pad.left + plotW) +
+            '" y2="' + gy + '" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />';
+        }
+
+        var dots = points.map(function (p) {
+          return '<circle cx="' + p.x + '" cy="' + p.y +
+            '" r="1.6" fill="#e2e8f0" stroke="#38bdf8" stroke-width="0.6" />';
+        }).join("");
+
+        chart.innerHTML =
+          '<svg viewBox="0 0 100 60" preserveAspectRatio="none">' +
+          "<defs>" +
+          '<linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#f97316" />' +
+          '<stop offset="40%" stop-color="#facc15" />' +
+          '<stop offset="70%" stop-color="#4ade80" />' +
+          '<stop offset="100%" stop-color="#38bdf8" />' +
+          "</linearGradient>" +
+          '<linearGradient id="areaGlow" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="rgba(56,189,248,0.35)" />' +
+          '<stop offset="100%" stop-color="rgba(15,23,42,0.05)" />' +
+          "</linearGradient>" +
+          "</defs>" +
+          grid +
+          '<polyline points="' + area + '" fill="url(#areaGlow)" stroke="none" />' +
+          '<polyline points="' + line + '" fill="none" stroke="rgba(56,189,248,0.3)" ' +
+          'stroke-width="4" stroke-linejoin="round" stroke-linecap="round" filter="blur(4px)" />' +
+          '<polyline points="' + line + '" fill="none" stroke="url(#lineGlow)" ' +
+          'stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" />' +
+          dots +
+          '<text x="' + pad.left + '" y="' + (pad.top - 1) +
+          '" fill="rgba(255,255,255,0.45)" font-size="3">' + maxY + "</text>" +
+          '<text x="' + pad.left + '" y="' + (pad.top + plotH + 6) +
+          '" fill="rgba(255,255,255,0.45)" font-size="3">0</text>' +
+          '<text x="' + (pad.left + plotW - 4) + '" y="' + (pad.top + plotH + 6) +
+          '" fill="rgba(255,255,255,0.45)" font-size="3">' + maxX.toFixed(1) + "s</text>" +
+          "</svg>" +
+          '<div class="chart-axis"><span>Balls</span><span>Time since first ball (s)</span></div>';
+      }
+
+      function renderAll() {
+        renderStats();
+        renderTimeline();
+        renderMarkers();
+        renderShotList();
+        renderChart();
+      }
+
+      // ---------- actions ----------
+      function logShot() {
+        var p = getPlayer();
+        if (!p) return;
+        var ts = Number((p.getCurrentTime() || 0).toFixed(2));
+        shots.push({ id: makeId(), ts: ts });
+        shots.sort(function (a, b) { return a.ts - b.ts; });
+        renderAll();
+      }
+
+      function undoShot() {
+        if (shots.length === 0) return;
+        shots.pop();
+        renderAll();
+      }
+
+      function removeShot(id) {
+        shots = shots.filter(function (shot) { return shot.id !== id; });
+        renderAll();
+      }
+
+      function seekBy(delta) {
+        var p = getPlayer();
+        if (!p) return;
+        p.seekTo(Math.max(0, p.getCurrentTime() + delta), true);
+      }
+
+      function seekTo(ts) {
+        var p = getPlayer();
+        if (!p) return;
+        p.seekTo(ts, true);
+      }
+
+      function togglePlayback() {
+        var p = getPlayer();
+        if (!p) return;
+        if (p.getPlayerState() === window.YT.PlayerState.PLAYING) {
+          p.pauseVideo();
+        } else {
+          p.playVideo();
+        }
+      }
+
+      function changeRate(rate) {
+        var p = getPlayer();
+        if (!p) return;
+        p.setPlaybackRate(rate);
+      }
+
+      // ---------- player ----------
+      function createPlayer(id) {
+        if (player) {
+          player.destroy();
+          player = null;
+        }
+
+        // YT.Player replaces its host element, so give it a fresh one each time.
+        playerHost.innerHTML = "";
+        var mount = document.createElement("div");
+        playerHost.appendChild(mount);
+
+        player = new window.YT.Player(mount, {
+          height: "360",
+          width: "640",
+          videoId: id,
+          playerVars: {
+            rel: 0,
+            modestbranding: 1,
+            controls: 1,
+            iv_load_policy: 3,
+            fs: 0,
+            disablekb: 0
+          },
+          events: {
+            onReady: function () {
+              playerState = "ready";
+              duration = player.getDuration() || 0;
+              videoPlaceholder.hidden = true;
+              // Start at normal speed, then slow down after a brief delay —
+              // this avoids YouTube's streaming hiccups with slow playback.
+              setTimeout(function () {
+                player.setPlaybackRate(0.25);
+                speedSelect.value = "0.25";
+              }, 500);
+              setStatus("Video loaded. Press B to log a ball, Space to pause/play, . and , for frame-by-frame.");
+              renderAll();
+            },
+            onStateChange: function (event) {
+              var states = {
+                "-1": "unstarted",
+                0: "ended",
+                1: "playing",
+                2: "paused",
+                3: "buffering",
+                5: "cued"
+              };
+              playerState = states[event.data] || "idle";
+              playBtn.textContent = playerState === "playing" ? "Pause" : "Play";
+            },
+            onError: function (event) {
+              var messages = {
+                2: "Invalid video ID",
+                5: "HTML5 player error - try reloading",
+                100: "Video not found or private",
+                101: "Video cannot be embedded",
+                150: "Video cannot be embedded",
+                153: location.protocol === "file:"
+                  ? "YouTube blocks playback on pages opened from your file system — see the notice above."
+                  : "YouTube rejected this page's address - serve it over http(s)."
+              };
+              setStatus(messages[event.data] || "Playback error - try reloading the video");
+            }
+          }
+        });
+
+        shots = [];
+        duration = 0;
+        currentTime = 0;
+        renderAll();
+      }
+
+      function handleLoad() {
+        var id = parseYouTubeId(videoInput.value);
+        if (!id) {
+          setStatus("Please enter a valid YouTube URL or video ID.");
+          return;
+        }
+        videoId = id;
+        createPlayer(id);
+      }
+
+      // ---------- wiring ----------
+      loadBtn.addEventListener("click", handleLoad);
+      videoInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") handleLoad();
+      });
+
+      playBtn.addEventListener("click", togglePlayback);
+      el("backBtn").addEventListener("click", function () { seekBy(-1); });
+      el("fwdBtn").addEventListener("click", function () { seekBy(1); });
+      el("logBtn").addEventListener("click", logShot);
+      el("undoBtn").addEventListener("click", undoShot);
+
+      speedSelect.addEventListener("change", function () {
+        changeRate(Number(speedSelect.value));
+      });
+
+      shotList.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!target || target.nodeType !== 1) return;
+        if (target.dataset.seek !== undefined) {
+          seekTo(Number(target.dataset.seek));
+        } else if (target.dataset.remove !== undefined) {
+          removeShot(target.dataset.remove);
+        }
+      });
+
+      window.addEventListener("keydown", function (e) {
+        var target = e.target;
+        if (target && ["INPUT", "TEXTAREA", "SELECT"].indexOf(target.tagName) !== -1) return;
+
+        if (e.code === "Space") { e.preventDefault(); togglePlayback(); }
+        if (e.key.toLowerCase() === "b") { e.preventDefault(); logShot(); }
+        if (e.key.toLowerCase() === "u") { e.preventDefault(); undoShot(); }
+        if (e.key === "[") { e.preventDefault(); seekBy(-1); }
+        if (e.key === "]") { e.preventDefault(); seekBy(1); }
+        // Frame-by-frame navigation (assumes 30fps).
+        if (e.key === ".") { e.preventDefault(); seekBy(1 / 30); }
+        if (e.key === ",") { e.preventDefault(); seekBy(-1 / 30); }
+      });
+
+      // Poll the player for time/duration, like the original page did.
+      setInterval(function () {
+        var p = getPlayer();
+        if (!p) return;
+        currentTime = p.getCurrentTime() || 0;
+        duration = p.getDuration() || 0;
+        renderTimeline();
+        el("statDuration").textContent = formatTimestamp(duration || 0);
+
+        // Only re-render the shot rows when the active highlight actually moves.
+        var signature = shots
+          .map(function (s) { return Math.abs(currentTime - s.ts) < 0.3 ? "1" : "0"; })
+          .join("");
+        if (signature !== lastRenderedShotSignature) {
+          lastRenderedShotSignature = signature;
+          renderShotList();
+        }
+      }, 250);
+
+      // ---------- YouTube IFrame API ----------
+      if (location.protocol === "file:") {
+        el("fileNotice").hidden = false;
+      }
+
+      window.onYouTubeIframeAPIReady = function () {
+        apiReady = true;
+        loadBtn.disabled = false;
+        setStatus("Load a YouTube link to start. Hotkey: B to log, . and , for frame-by-frame.");
+      };
+
+      var tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.body.appendChild(tag);
+
+      renderAll();
+    })();
+  </script>
+</body>
+
+</html>
