@@ -395,6 +395,33 @@
     }
 
     /* ---------- side panel ---------- */
+    /* The panel is taken out of flow on wide screens so a long shot list can't
+       stretch the grid row — the video column alone decides the height, and the
+       list scrolls inside whatever is left. */
+    .panel-cell {
+      min-width: 0;
+    }
+
+    @media (min-width: 1024px) {
+      .panel-cell {
+        position: relative;
+      }
+
+      .panel-cell .panel {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+    }
+
+    /* Single-column layout: nothing constrains the panel, so cap the list
+       instead of letting it run to thousands of pixels. */
+    @media (max-width: 1023.98px) {
+      .shot-list-wrap {
+        max-height: 60vh;
+      }
+    }
+
     .panel {
       display: flex;
       flex-direction: column;
@@ -404,6 +431,7 @@
       background: rgba(0, 0, 0, 0.3);
       padding: 1.25rem;
       min-width: 0;
+      min-height: 0;
     }
 
     .stats-card {
@@ -472,6 +500,11 @@
     /* ---------- shot list ---------- */
     .shot-list-wrap {
       flex: 1;
+      /* Fill the panel, but stay usable when the panel isn't stretched
+         (single-column layout). */
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
       border-radius: 0.5rem;
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -480,7 +513,7 @@
 
     .shot-empty {
       display: flex;
-      height: 100%;
+      flex: 1;
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -516,7 +549,8 @@
     }
 
     .shot-list {
-      max-height: 260px;
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
     }
 
@@ -734,35 +768,37 @@
       </div>
 
       <!-- ---------- right column ---------- -->
-      <div class="panel">
-        <div class="stats-card">
-          <div class="stats-grid">
-            <div>Total balls</div>
-            <div class="tip">
-              Avg BPS
-              <span class="tip-body">Overall throughput between the first and last scored ball</span>
-              <span>ℹ️</span>
+      <div class="panel-cell">
+        <div class="panel">
+          <div class="stats-card">
+            <div class="stats-grid">
+              <div>Total balls</div>
+              <div class="tip">
+                Avg BPS
+                <span class="tip-body">Overall throughput between the first and last scored ball</span>
+                <span>ℹ️</span>
+              </div>
+              <div id="statTotal" class="stat-big">0</div>
+              <div id="statAvg" class="stat-big">0.00</div>
+              <div class="tip">
+                Max BPS
+                <span class="tip-body">Best sustained 1-second burst</span>
+                <span>ℹ️</span>
+              </div>
+              <div>Duration</div>
+              <div id="statMax" class="stat-mid">0.00</div>
+              <div id="statDuration" class="stat-mid">00:00.00</div>
             </div>
-            <div id="statTotal" class="stat-big">0</div>
-            <div id="statAvg" class="stat-big">0.00</div>
-            <div class="tip">
-              Max BPS
-              <span class="tip-body">Best sustained 1-second burst</span>
-              <span>ℹ️</span>
-            </div>
-            <div>Duration</div>
-            <div id="statMax" class="stat-mid">0.00</div>
-            <div id="statDuration" class="stat-mid">00:00.00</div>
           </div>
-        </div>
 
-        <div class="shot-list-wrap">
-          <div id="shotEmpty" class="shot-empty">
-            <div class="icon">🎯</div>
-            <p class="title">No shots logged yet</p>
-            <p class="sub">Press <kbd>B</kbd> while the video plays</p>
+          <div class="shot-list-wrap">
+            <div id="shotEmpty" class="shot-empty">
+              <div class="icon">🎯</div>
+              <p class="title">No shots logged yet</p>
+              <p class="sub">Press <kbd>B</kbd> while the video plays</p>
+            </div>
+            <div id="shotList" class="shot-list scrollbar-thin" hidden></div>
           </div>
-          <div id="shotList" class="shot-list scrollbar-thin" hidden></div>
         </div>
       </div>
     </section>
